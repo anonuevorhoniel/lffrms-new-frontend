@@ -8,7 +8,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useMediaQuery } from "@react-hook/media-query";
 
 import {
     Drawer,
@@ -17,6 +16,7 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from "@/components/ui/drawer";
+import { useMediaQuery } from "usehooks-ts";
 
 export function ResponsiveDialog({
     children,

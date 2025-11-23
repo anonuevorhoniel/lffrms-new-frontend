@@ -5,6 +5,7 @@ import DataTable from "@/components/custom/datatable";
 import { Button } from "@/components/ui/button";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Page() {
@@ -61,9 +62,11 @@ export default function Page() {
     <>
       <title>LFFRMS | Farmers</title>
       <div className="space-y-4 w-full">
-        <Button>
-          <Plus /> Add Farmers
-        </Button>
+        <Link href={"/farmers/create"}>
+          <Button>
+            <Plus /> Add Farmers
+          </Button>
+        </Link>
         <DataTable
           data={data?.data?.farmers}
           columns={columns}

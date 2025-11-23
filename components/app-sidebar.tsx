@@ -62,20 +62,8 @@ const data = {
           url: "/crop-categories",
         },
         {
-          title: "Assistance Histories",
-          url: "/assistance-histories",
-        },
-        {
           title: "Assistances",
           url: "/assistances",
-        },
-        {
-          title: "Machines",
-          url: "/machines",
-        },
-        {
-          title: "Funds",
-          url: "/funds",
         },
         {
           title: "Post Harvests",

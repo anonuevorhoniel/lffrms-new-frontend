@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,18 +8,22 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ReactNode } from "react"
+} from "@/components/ui/sidebar";
+import { useTitle } from "@/global/useTitle";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Link from "next/link";
+import { Fragment, ReactNode } from "react";
+import { Toaster } from "sonner";
 
-export default function AuthLayout({children}: {children: ReactNode}) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   const client = new QueryClient();
+  const { title } = useTitle();
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -27,12 +31,36 @@ export default function AuthLayout({children}: {children: ReactNode}) {
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <Link href={title.link}>
+                    {title.name ?? "..."}
+                  </Link>
+                </BreadcrumbItem>
+                {title?.pages &&
+                  title?.pages?.map((title) => (
+                    <Fragment  key={title}>
+                      <BreadcrumbSeparator className="hidden md:block" />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>{title}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </Fragment>
+                  ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 sm:px-10">
-            <QueryClientProvider client={client}>{children}</QueryClientProvider>
+          <QueryClientProvider client={client}>
+            {children} <Toaster />
+          </QueryClientProvider>
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
