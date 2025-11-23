@@ -152,7 +152,7 @@ export default function FarmerForm({
               label="Blood Type"
               type="select"
               selectItems={
-                <>
+                <>//i-map konalang
                   <SelectItem value="A+">A+</SelectItem>
                   <SelectItem value="A-">A-</SelectItem>
                   <SelectItem value="B+">B+</SelectItem>
