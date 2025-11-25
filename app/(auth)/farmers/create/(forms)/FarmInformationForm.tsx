@@ -2,149 +2,167 @@
 
 import ax from "@/app/axios";
 import FormFieldComponent from "@/components/custom/form-field";
-import { MultiSelect } from "@/components/custom/multi-select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import { FieldArrayWithId, UseFormReturn } from "react-hook-form";
+import CropTypeArrayForm from "./CropTypeArrayForm";
+import CustomFormField from "@/components/custom/custom-form-field";
+import CommandSelect from "@/components/custom/command-select";
 import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { House, Plus } from "lucide-react";
-import { useState } from "react";
-import { UseFormReturn } from "react-hook-form";
 
-export default function FarmInformationForm({ form }: { form: UseFormReturn }) {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
-  const cropTypeId = form.watch("crop_type_id");
+export default function FarmInformationForm({
+  form,
+  remove,
+  field,
+  index,
+  length,
+}: {
+  form: UseFormReturn;
+  remove: any;
+  field: FieldArrayWithId;
+  index: number;
+  length: number;
+}) {
+  const municipalityCode = form.watch(
+    `farm_information.${index}.municipality_code`
+  );
 
-  const { data: cropTypeData, isFetching: cropTypeIsFetching } = useQuery({
-    queryKey: ["cropTypesFarm"],
+  const { data: municipalityData, isFetching: municipalityIsFetching } =
+    useQuery({
+      queryKey: ["municipalitiesFarmInfo"],
+      queryFn: async () => await ax.get("/municipalities"),
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: false,
+    });
+
+  const { data: barangayData, isFetching: barangayIsFetching } = useQuery({
+    queryKey: ["barangaysFarmInfo", municipalityCode],
     queryFn: async () =>
-      await ax.get("/crop_types", { params: { no_pagination: true } }),
-    refetchOnWindowFocus: false,
+      await ax.get("/barangays", {
+        params: { municipality_code: municipalityCode },
+      }),
     placeholderData: keepPreviousData,
-  });
-
-  const {
-    data: subCategoryData,
-    isSuccess,
-    isError,
-    error,
-    isFetching: subCategoriesIsFetching,
-  } = useQuery({
-    queryKey: ["subCategoriesFarm", cropTypeId],
-    queryFn: async () => await ax.get(`/sub_categories/${cropTypeId}`),
     refetchOnWindowFocus: false,
-    enabled: !!cropTypeId,
+    enabled: !!municipalityCode,
   });
 
-  const options =
-    subCategoryData?.data?.data?.map((item: any) => ({
-      value: item.id,
-      label: item.name,
-    })) || [];
+  const { data: physicalAreasData, isFetching: physicalAreasIsFetching } =
+    useQuery({
+      queryKey: ["physicalAreasFarmInfo"],
+      queryFn: async () => await ax.get("/physical_areas"),
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: false,
+    });
 
-  if (isError) console.log(error);
-  if (isSuccess) console.log(subCategoryData?.data?.data);
+  const municipalities = municipalityData?.data?.map((item: any) => ({
+    value: item.code,
+    label: item.name,
+  }));
 
-  const cropTypes = cropTypeData?.data?.data;
+  const barangays = barangayData?.data?.map((item: any) => ({
+    value: item.code,
+    label: item.name,
+  }));
+
+  const physicalAreas = physicalAreasData?.data;
 
   return (
-    <>
-      <div className="space-y-4">
-        <h1 className="font-bold text-lg flex items-center gap-2">
-          Farm Information
-        </h1>
-        <div className="border space-y-4 shadow-md rounded-md">
-          <Label className="font-bold border bg-secondary p-2 rounded-tl-md rounded-tr-md">
-            Farm Information # 1
-          </Label>
-          <div className="grid gap-5 px-4 py-5 pb-10 ">
-            <div className="space-y-4">
-              <div className="grid sm:grid-cols-3 gap-3">
-                <FormFieldComponent
-                  name="crop_type_id"
-                  label={
-                    cropTypeIsFetching ? (
-                      <div className="flex gap-2 items-center">
-                        <h1>Crop Types # 1</h1> <Spinner size={15} />
-                      </div>
-                    ) : (
-                      "Crop Types # 1"
-                    )
-                  }
-                  form={form}
-                  type="select"
-                  selectItems={cropTypes?.map((type: any) => (
-                    <SelectItem value={`${type.id}`} key={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                />
-                <div className="sm:col-span-2 space-y-2">
-                  <Label>
-                    Sub Categories{" "}
-                    {subCategoriesIsFetching && <Spinner size={15} />}
-                  </Label>
-                  <div
-                    className={`${
-                      (subCategoriesIsFetching ||
-                        !subCategoryData?.data?.data) &&
-                      "pointer-events-none"
-                    }`}
-                  >
-                    <MultiSelect
-                      options={options}
-                      onValueChange={setSelectedValues}
-                      defaultValue={selectedValues}
-                    />
+    <div className="space-y-4">
+      <div className="border space-y-4 shadow-md rounded-md" key={field.id}>
+        <div className="flex justify-between p-2 border rounded-tl-md rounded-tr-md h-14">
+          <Label className="font-bold">Farm Information # {index + 1}</Label>
+          {length > 1 && (
+            <Button type="button" onClick={() => remove(index)}>
+              <X />
+            </Button>
+          )}
+        </div>
+        <div className="grid gap-5 px-4 py-5 pb-10 ">
+          <div className="space-y-4">
+            <CropTypeArrayForm form={form} index={index} />
+          </div>
+          <div className="grid sm:grid-cols-4 gap-5">
+            <FormFieldComponent
+              name={`farm_information.${index}.size`}
+              label="Farm Area"
+              form={form}
+            />
+            <FormFieldComponent
+              name={`farm_information.${index}.farmer_type_id`}
+              label="Farmer Type"
+              form={form}
+            />
+            <FormFieldComponent
+              name={`farm_information.${index}.physical_areas`}
+              label="Physical Areas"
+              form={form}
+              type="select"
+              selectItems={physicalAreas?.map((item: any) => (
+                <SelectItem value={`${item.id}`} key={item.id}>{item.type}</SelectItem>
+              ))}
+            />
+            <FormFieldComponent
+              name={`farm_information.${index}.started_tenant_year`}
+              label="Started Tenant Year"
+              form={form}
+            />
+            <CustomFormField
+              name={`farm_information.${index}.municipality_code`}
+              form={form}
+              label={
+                municipalityIsFetching ? (
+                  <div className="flex gap-2 items-center">
+                    City / Municipality <Spinner size={15} />
                   </div>
-                </div>
-              </div>
-              <Button type="button" size={"sm"}>
-                <Plus /> Add Crop Types
-              </Button>
-            </div>
-            <div className="grid sm:grid-cols-4 gap-5">
-              <FormFieldComponent
-                name="farm_area"
-                label="Farm Area"
-                form={form}
-              />
-              <FormFieldComponent
-                name="farmer_type"
-                label="Farmer Type"
-                form={form}
-              />
-              <FormFieldComponent
-                name="physical_areas"
-                label="Physical Areas"
-                form={form}
-              />
-              <FormFieldComponent
-                name="started_tenant_year"
-                label="Started Tenant Year"
-                form={form}
-              />
-              <FormFieldComponent
-                name="municipality_code"
-                label="City / Municipality"
-                form={form}
-              />
-              <FormFieldComponent
-                name="barangay_code"
-                label="Barangay"
-                form={form}
-              />
-              <FormFieldComponent name="street" label="Street" form={form} />
-            </div>
+                ) : (
+                  "City / Municipality"
+                )
+              }
+              element={
+                <CommandSelect
+                  values={municipalities}
+                  name={`farm_information.${index}.municipality_code`}
+                  form={form}
+                />
+              }
+            />
+            <CustomFormField
+              name={`farm_information.${index}.barangay_code`}
+              form={form}
+              label={
+                barangayIsFetching ? (
+                  <div className="flex gap-2 items-center">
+                    Barangay <Spinner size={15} />
+                  </div>
+                ) : (
+                  "Barangay"
+                )
+              }
+              element={
+                <CommandSelect
+                  values={barangays}
+                  name={`farm_information.${index}.barangay_code`}
+                  form={form}
+                />
+              }
+            />
+            <FormFieldComponent
+              name={`farm_information.${index}.street`}
+              label="Street"
+              form={form}
+            />
           </div>
         </div>
-        <div className="flex justify-center gap-5 mt-6 items-center">
-          <Button>
-            <Plus /> Add Farm Information
-          </Button>
-        </div>
       </div>
-    </>
+    </div>
   );
 }
+
+// barangayData?.data?.map((barangay) => (
+//                 <SelectItem value={`${barangay.code}`} key={barangay.id}>
+//                   {barangay.name}
+//                 </SelectItem>
+//               ))

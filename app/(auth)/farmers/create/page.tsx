@@ -17,26 +17,36 @@ export default function Page() {
       pages: ["Create"],
     });
   }, []);
-  const form = useForm();
+  const form = useForm({
+    defaultValues: {
+      farm_information: [
+        {
+          crop_types: [{}],
+          id: null,
+        },
+      ],
+    },
+  });
   const handleSubmit = (data: any) => {
     store.mutate(data);
-    console.log(data);
+    // console.log(data);
   };
   const qclient = useQueryClient();
   const store = useMutation({
     mutationFn: async (data) => await ax.post("/farmers/store", data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Farmer Added");
-      form.reset();
-      qclient.invalidateQueries({
-        queryKey: ["farmers"],
-      });
-      qclient.removeQueries({
-        queryKey: ["municipalities"],
-      });
-      qclient.removeQueries({
-        queryKey: ["barangays"],
-      });
+      // form.reset();
+      // qclient.invalidateQueries({
+      //   queryKey: ["farmers"],
+      // });
+      // qclient.removeQueries({
+      //   queryKey: ["municipalities"],
+      // });
+      // qclient.removeQueries({
+      //   queryKey: ["barangays"],
+      // });
+      console.log(data?.data)
     },
     onError: (error) => console.log(error),
   });

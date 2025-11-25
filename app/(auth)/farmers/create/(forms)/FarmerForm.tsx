@@ -27,6 +27,10 @@ import { House, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import FarmInformationForm from "./FarmInformationForm";
+import { useFieldArray } from "react-hook-form";
+import CustomFormField from "@/components/custom/custom-form-field";
+import CommandSelect from "@/components/custom/command-select";
+import { Spinner } from "@/components/ui/shadcn-io/spinner";
 
 export default function FarmerForm({
   form,
@@ -48,7 +52,7 @@ export default function FarmerForm({
   const district_id = form.watch("district_id");
   const municipalityCode = form.watch("municipality_code");
 
-  const { data: municipalityData } = useQuery({
+  const { data: municipalityData, isFetching: municipalityIsFetching } = useQuery({
     queryKey: ["municipalities", district_id],
     queryFn: async () =>
       await ax.get("/municipalities", { params: { district_id: district_id } }),
@@ -56,7 +60,7 @@ export default function FarmerForm({
     enabled: !!district_id,
   });
 
-  const { data: barangayData } = useQuery({
+  const { data: barangayData, isFetching: barangayIsFetching } = useQuery({
     queryKey: ["barangays", municipalityCode],
     queryFn: async () =>
       await ax.get(`/barangays`, {
@@ -66,8 +70,19 @@ export default function FarmerForm({
     enabled: !!municipalityCode,
   });
 
-  const municipalities = municipalityData?.data;
-  const barangays = barangayData?.data;
+  const { remove, fields, append } = useFieldArray({
+    name: "farm_information",
+    control: form.control,
+  });
+
+  const municipalities = municipalityData?.data?.map((municipality: any) => ({
+    label: municipality.name,
+    value: municipality.code,
+  }));
+  const barangays = barangayData?.data.map((barangay: any) => ({
+    label: barangay.name,
+    value: barangay.code,
+  }));
 
   return (
     <Form {...form}>
@@ -152,7 +167,8 @@ export default function FarmerForm({
               label="Blood Type"
               type="select"
               selectItems={
-                <>//i-map konalang
+                //i-map konalang
+                <>
                   <SelectItem value="A+">A+</SelectItem>
                   <SelectItem value="A-">A-</SelectItem>
                   <SelectItem value="B+">B+</SelectItem>
@@ -188,32 +204,45 @@ export default function FarmerForm({
                 </>
               }
             />
-            <FormFieldComponent
-              name="municipality_code"
+            <CustomFormField
+              name={`municipality_code`}
               form={form}
-              label="City / Municipality"
-              type="select"
-              selectItems={municipalities?.map((municipality: any) => (
-                <SelectItem
-                  value={`${municipality.code}`}
-                  key={municipality.id}
-                >
-                  {municipality.name}
-                </SelectItem>
-              ))}
+              label={
+                municipalityIsFetching ? (
+                  <div className="flex gap-2 items-center">
+                    City / Municipality <Spinner size={15} />
+                  </div>
+                ) : (
+                  "City / Municipality"
+                )
+              }
+              element={
+                <CommandSelect
+                  values={municipalities}
+                  name={`municipality_code`}
+                  form={form}
+                />
+              }
             />
-            <FormFieldComponent
-              name="barangay_code"
+            <CustomFormField
+              name={`barangay_code`}
               form={form}
-              label="Barangay"
-              type="select"
-              selectItems={barangays?.map((barangay: any) => (
-                <>
-                  <SelectItem value={`${barangay.code}`} key={barangay.id}>
-                    {barangay.name}
-                  </SelectItem>
-                </>
-              ))}
+              label={
+                barangayIsFetching ? (
+                  <div className="flex gap-2 items-center">
+                    Barangay <Spinner size={15} />
+                  </div>
+                ) : (
+                  "Barangay"
+                )
+              }
+              element={
+                <CommandSelect
+                  values={barangays}
+                  name={`barangay_code`}
+                  form={form}
+                />
+              }
             />
             <FormFieldComponent
               name="street"
@@ -262,7 +291,35 @@ export default function FarmerForm({
             </div>
           </div>
           <Separator className="my-5" />
-          <FarmInformationForm form={form} />
+          <h1 className="font-bold text-lg flex items-center gap-2">
+            Farm Information
+          </h1>
+          {fields?.map((field, index) => (
+            <FarmInformationForm
+              key={field.id}
+              form={form}
+              field={field}
+              index={index}
+              remove={remove}
+              length={fields.length}
+            />
+          ))}
+          <Button
+            type="button"
+            size={"sm"}
+            onClick={() =>
+              append({
+                crop_types: [
+                  {
+                    id: null,
+                    sub_categories: [{}],
+                  },
+                ],
+              })
+            }
+          >
+            <Plus /> Add Farm Information
+          </Button>
           <div className="flex justify-center sticky bottom-5">
             <ButtonLoad
               isPending={isPending}

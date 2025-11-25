@@ -19,12 +19,11 @@ import {
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 export function NavMain({
   items,
 }: {
-  items?: {
+  items: {
     title: string;
     url: string;
     icon?: LucideIcon;
@@ -68,7 +67,10 @@ export function NavMain({
                           <Link href={subItem.url}>
                             <SidebarMenuSubButton
                               asChild
-                              isActive={pathname === subItem.url}
+                              isActive={
+                                pathname === subItem.url ||
+                                pathname.includes(subItem.url)
+                              }
                             >
                               <span>{subItem.title}</span>
                             </SidebarMenuSubButton>
