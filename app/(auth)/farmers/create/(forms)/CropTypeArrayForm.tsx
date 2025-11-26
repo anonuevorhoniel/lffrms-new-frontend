@@ -9,7 +9,7 @@ import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 
 export default function CropTypeArrayForm({
@@ -20,7 +20,7 @@ export default function CropTypeArrayForm({
   form: UseFormReturn;
 }) {
   const { append, remove, fields } = useFieldArray({
-    name: `farm_information.${index}.crop_types`,
+    name: `farm_informations.${index}.crop_types`,
     control: form.control,
   });
 
@@ -68,7 +68,7 @@ function CropTypeItem({
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const { setValue, watch } = form;
   const cropTypeId = watch(
-    `farm_information.${index}.crop_types.${subIndex}.id`
+    `farm_informations.${index}.crop_types.${subIndex}.crop_type_id`
   );
   const {
     data: cropTypeData,
@@ -94,15 +94,22 @@ function CropTypeItem({
 
   const options =
     subCategoryData?.data?.data?.map((item: any) => ({
-      value: item.id,
+      value: String(item.id),
       label: item.name,
     })) || [];
 
+  const optionValues = watch(
+    `farm_informations.${index}.crop_types.${subIndex}.sub_categories`
+  )?.map((item: any) => String(item?.sub_category?.id));
+
   const cropTypes = cropTypeData?.data?.data;
+  // useEffect(() => {
+  //   console.log(cropTypeId);
+  // }, [options]);
   return (
     <div className="grid sm:grid-cols-3 gap-3">
       <FormFieldComponent
-        name={`farm_information.${index}.crop_types.${subIndex}.id`}
+        name={`farm_informations.${index}.crop_types.${subIndex}.crop_type_id`}
         label={
           cropTypeIsFetching ? (
             <div className="flex gap-2 items-center">
@@ -132,11 +139,12 @@ function CropTypeItem({
             }`}
           >
             <MultiSelect
-              name={`farm_information.${index}.crop_types.${subIndex}.sub_categories`}
+              defaultValue={options ? optionValues : []}
+              name={`farm_informations.${index}.crop_types.${subIndex}.sub_categories`}
               options={options}
               onValueChange={(e) =>
                 setValue(
-                  `farm_information.${index}.crop_types.${subIndex}.sub_categories`,
+                  `farm_informations.${index}.crop_types.${subIndex}.sub_categories`,
                   e
                 )
               }

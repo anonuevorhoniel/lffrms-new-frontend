@@ -7,9 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  SelectItem,
-} from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Dropzone,
@@ -17,7 +15,7 @@ import {
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
 import { formType } from "@/global/formType";
-import {  useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import FarmInformationForm from "./FarmInformationForm";
@@ -26,16 +24,20 @@ import CustomFormField from "@/components/custom/custom-form-field";
 import CommandSelect from "@/components/custom/command-select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { useFarmer } from "@/global/useFarmer";
+import { useRouter } from "next/navigation";
 
 export default function FarmerForm({
   form,
   handleSubmit,
   isPending,
 }: formType) {
-
-  const {farmerSignatoryImage, setFarmerSignatoryImage, farmerImage, setFarmerImage} = useFarmer()
+  const {
+    farmerSignatoryImage,
+    setFarmerSignatoryImage,
+    farmerImage,
+    setFarmerImage,
+  } = useFarmer();
   const handleFarmerImageDrop = (files: File[]) => {
-    const file = files[0];
     console.log(files);
     setFarmerImage(files);
   };
@@ -46,6 +48,7 @@ export default function FarmerForm({
 
   const district_id = form.watch("district_id");
   const municipalityCode = form.watch("municipality_code");
+  const router = useRouter();
 
   const { data: municipalityData, isFetching: municipalityIsFetching } =
     useQuery({
@@ -69,7 +72,7 @@ export default function FarmerForm({
   });
 
   const { remove, fields, append } = useFieldArray({
-    name: "farm_information",
+    name: "farm_informations",
     control: form.control,
   });
 
@@ -328,11 +331,15 @@ export default function FarmerForm({
           >
             <Plus /> Add Farm Information
           </Button>
-          <div className="flex justify-center sticky bottom-5">
-            <ButtonLoad
-              isPending={isPending}
-              className="mt-3 sm:mr-10 w-full sm:w-40"
-            />
+          <div className="flex justify-end items-center gap-2 bottom-5">
+            <Button
+              className=""
+              variant={"outline"}
+              onClick={() => router.back()}
+            >
+              Cancel
+            </Button>
+            <ButtonLoad isPending={isPending} className=" w-full sm:w-40" />
           </div>
         </div>
       </form>

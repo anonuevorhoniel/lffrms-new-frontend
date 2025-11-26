@@ -20,6 +20,8 @@ export default function Page() {
     data: farmerData,
     isSuccess,
     isFetching,
+    isError,
+    error
   } = useQuery({
     queryKey: ["farmerShow"],
     queryFn: async () => await ax.get(`/farmers/${id}`),
@@ -28,15 +30,18 @@ export default function Page() {
   if (isSuccess) {
     console.log(farmerData?.data);
   }
+  if(isError) {
+    console.log(error);
+  }
 
   useEffect(() => {
-   const timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (isSuccess) {
         form.reset(farmerData?.data);
         setFarmer(farmerData?.data);
       }
     }, 100);
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
   }, [isSuccess, form, farmerData]);
 
   if (isFetching) {

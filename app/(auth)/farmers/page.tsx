@@ -87,7 +87,7 @@ export default function Page() {
             } ${farmer.last_name} ${farmer.name_extension ?? ""}`;
             return (
               <Card
-                className="hover:border-primary pb-0 hover:cursor-pointer"
+                className="hover:shadow-lg hover:-translate-y-1 transition-all pb-0 hover:cursor-pointer"
                 key={farmer.id}
                 onClick={() => {
                   setFarmer(farmer);
@@ -100,7 +100,7 @@ export default function Page() {
                       <ImageZoom>
                         <AvatarImage src={farmer.image_url} />
                       </ImageZoom>
-                    </Avatar>
+                    </Avatar> 
                     <div className="flex flex-col items-center">
                       <h1 className="font-bold">{fullName}</h1>
                       <div className="flex items-center gap-1">

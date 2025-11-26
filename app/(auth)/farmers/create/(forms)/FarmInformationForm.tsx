@@ -12,7 +12,9 @@ import CustomFormField from "@/components/custom/custom-form-field";
 import CommandSelect from "@/components/custom/command-select";
 import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
-import { MultiSelect } from "@/components/custom/multi-select";
+import { useFarmer } from "@/global/useFarmer";
+import { useEffect } from "react";
+import Select from "react-select";
 
 export default function FarmInformationForm({
   form,
@@ -28,8 +30,9 @@ export default function FarmInformationForm({
   length: number;
 }) {
   const { setValue, watch } = form;
-  const municipalityCode = watch(`farm_information.${index}.municipality_code`);
-
+  const municipalityCode = watch(
+    `farm_informations.${index}.municipality_code`
+  );
   const { data: municipalityData, isFetching: municipalityIsFetching } =
     useQuery({
       queryKey: ["municipalitiesFarmInfo"],
@@ -68,9 +71,33 @@ export default function FarmInformationForm({
   }));
 
   const physicalAreas = physicalAreasData?.data.map((item: any) => ({
-    value: item.id,
+    value: String(item.id),
     label: item.type,
   }));
+
+  const physicalAreasValue = watch(`farm_informations.${index}.physical_areas`);
+  const farmerType = watch(`farm_informations.${index}.farmer_type_id`);
+
+  useEffect(() => {
+    if (farmerType == 1) {
+      setValue(`farm_informations.${index}.date_tenant_started`, null);
+    }
+  }, [farmerType]);
+
+  useEffect(() => {
+    if (physicalAreasValue) {
+      const transformedPhysicalAreas = physicalAreasValue.physical_areas?.map(
+        (item) => ({
+          value: String(item.id),
+          label: item.type,
+        })
+      );
+      setValue(
+        `farm_informations.${index}.physical_areas`,
+        transformedPhysicalAreas
+      );
+    }
+  }, [physicalAreasValue]);
 
   return (
     <div className="space-y-4">
@@ -89,41 +116,57 @@ export default function FarmInformationForm({
           </div>
           <div className="grid sm:grid-cols-4 gap-5">
             <FormFieldComponent
-              name={`farm_information.${index}.size`}
+              name={`farm_informations.${index}.size`}
               label="Farm Area"
               form={form}
             />
             <FormFieldComponent
-              name={`farm_information.${index}.farmer_type_id`}
+              name={`farm_informations.${index}.farmer_type_id`}
               label="Farmer Type"
               form={form}
-            />
-            {/* <FormFieldComponent
-              name={`farm_information.${index}.physical_areas`}
-              label="Physical Areas"
-              form={form}
               type="select"
-              selectItems={physicalAreas?.map((item: any) => (
-                <SelectItem value={`${item.id}`} key={item.id}>{item.type}</SelectItem>
-              ))}
-            /> */}
-            <div className="sm:col-span-2 space-y-2">
-              <Label>Physical Areas</Label>
-              <MultiSelect
-              name={`farm_information.${index}.physical_areas`}
-              options={physicalAreas ?? []}
-              onValueChange={(e) =>
-                setValue(`farm_information.${index}.physical_areas`, e)
+              selectItems={
+                <>
+                  <SelectItem value="1">Owner</SelectItem>
+                  <SelectItem value="2">Tenant</SelectItem>
+                </>
               }
             />
+            <div
+              className={`${
+                farmerType == 1 ? "pointer-events-none opacity-70" : ""
+              }`}
+            >
+              <FormFieldComponent
+                name={`farm_informations.${index}.date_tenant_started`}
+                label="Started Tenant Date"
+                type="date"
+                form={form}
+              />
             </div>
-            <FormFieldComponent
-              name={`farm_information.${index}.started_tenant_year`}
-              label="Started Tenant Year"
-              form={form}
-            />
+            <div className="sm:col-span-2 space-y-2">
+              <Label>
+                Physical Areas{" "}
+                {physicalAreasIsFetching && <Spinner size={15} />}
+              </Label>
+              <Select
+                isMulti
+                value={physicalAreasValue
+                  ?.filter((item) => item?.id && item?.type) // Remove corrupted items
+                  ?.map((item) => ({
+                    label: item.type,
+                    value: String(item.id),
+                  }))}
+                name={`farm_informations.${index}.physical_areas`}
+                options={physicalAreas ?? []}
+                onChange={(e) => {
+                  setValue(`farm_informations.${index}.physical_areas`, e);
+                }}
+              />
+            </div>
+
             <CustomFormField
-              name={`farm_information.${index}.municipality_code`}
+              name={`farm_informations.${index}.municipality_code`}
               form={form}
               label={
                 municipalityIsFetching ? (
@@ -137,13 +180,13 @@ export default function FarmInformationForm({
               element={
                 <CommandSelect
                   values={municipalities}
-                  name={`farm_information.${index}.municipality_code`}
+                  name={`farm_informations.${index}.municipality_code`}
                   form={form}
                 />
               }
             />
             <CustomFormField
-              name={`farm_information.${index}.barangay_code`}
+              name={`farm_informations.${index}.barangay_code`}
               form={form}
               label={
                 barangayIsFetching ? (
@@ -157,13 +200,13 @@ export default function FarmInformationForm({
               element={
                 <CommandSelect
                   values={barangays}
-                  name={`farm_information.${index}.barangay_code`}
+                  name={`farm_informations.${index}.barangay_code`}
                   form={form}
                 />
               }
             />
             <FormFieldComponent
-              name={`farm_information.${index}.street`}
+              name={`farm_informations.${index}.street`}
               label="Street"
               form={form}
             />
@@ -173,9 +216,3 @@ export default function FarmInformationForm({
     </div>
   );
 }
-
-// barangayData?.data?.map((barangay) => (
-//                 <SelectItem value={`${barangay.code}`} key={barangay.id}>
-//                   {barangay.name}
-//                 </SelectItem>
-//               ))
