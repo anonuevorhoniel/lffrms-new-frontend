@@ -3,17 +3,12 @@
 import ax from "@/app/axios";
 import ButtonLoad from "@/components/custom/button-load";
 import FormFieldComponent from "@/components/custom/form-field";
-import { MultiSelect } from "@/components/custom/multi-select";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,43 +17,46 @@ import {
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
 import { formType } from "@/global/formType";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { House, Plus } from "lucide-react";
-import { useState } from "react";
+import {  useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import FarmInformationForm from "./FarmInformationForm";
 import { useFieldArray } from "react-hook-form";
 import CustomFormField from "@/components/custom/custom-form-field";
 import CommandSelect from "@/components/custom/command-select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import { useFarmer } from "@/global/useFarmer";
 
 export default function FarmerForm({
   form,
   handleSubmit,
   isPending,
 }: formType) {
-  const [farmerImage, setFarmerImage] = useState<File[] | undefined>();
-  const [farmerSignatory, setFarmerSignatory] = useState<File[] | undefined>();
 
+  const {farmerSignatoryImage, setFarmerSignatoryImage, farmerImage, setFarmerImage} = useFarmer()
   const handleFarmerImageDrop = (files: File[]) => {
+    const file = files[0];
     console.log(files);
     setFarmerImage(files);
   };
   const handleFarmerSignatoryDrop = (files: File[]) => {
     console.log(files);
-    setFarmerSignatory(files);
+    setFarmerSignatoryImage(files);
   };
 
   const district_id = form.watch("district_id");
   const municipalityCode = form.watch("municipality_code");
 
-  const { data: municipalityData, isFetching: municipalityIsFetching } = useQuery({
-    queryKey: ["municipalities", district_id],
-    queryFn: async () =>
-      await ax.get("/municipalities", { params: { district_id: district_id } }),
-    refetchOnWindowFocus: false,
-    enabled: !!district_id,
-  });
+  const { data: municipalityData, isFetching: municipalityIsFetching } =
+    useQuery({
+      queryKey: ["municipalities", district_id],
+      queryFn: async () =>
+        await ax.get("/municipalities", {
+          params: { district_id: district_id },
+        }),
+      refetchOnWindowFocus: false,
+      enabled: !!district_id,
+    });
 
   const { data: barangayData, isFetching: barangayIsFetching } = useQuery({
     queryKey: ["barangays", municipalityCode],
@@ -86,9 +84,16 @@ export default function FarmerForm({
 
   return (
     <Form {...form}>
-      <form action="" onSubmit={form.handleSubmit(handleSubmit)}>
+      <form
+        action=""
+        onSubmit={form.handleSubmit(handleSubmit)}
+        encType="multipart/form-data"
+      >
         <div className="space-y-4">
-          <h1 className="font-bold text-lg">Farmer Information</h1>
+          <div className="space-y-1">
+            <h1 className="font-bold text-lg">Farmer Information</h1>
+            <Separator />
+          </div>
           <div className="grid sm:grid-cols-4 gap-5">
             <div className="sm:col-span-2">
               <FormFieldComponent
@@ -255,7 +260,7 @@ export default function FarmerForm({
               <Label>Farmer Image</Label>
               <Dropzone
                 accept={{ "image/*": [] }}
-                maxFiles={10}
+                maxFiles={1}
                 maxSize={1024 * 1024 * 10}
                 // minSize={1024}
                 onDrop={handleFarmerImageDrop}
@@ -270,12 +275,12 @@ export default function FarmerForm({
               <Label>Farmer Signatory</Label>
               <Dropzone
                 accept={{ "image/*": [] }}
-                maxFiles={10}
+                maxFiles={1}
                 maxSize={1024 * 1024 * 10}
                 // minSize={1024}
                 onDrop={handleFarmerSignatoryDrop}
                 onError={(error) => toast.error(error.message)}
-                src={farmerSignatory}
+                src={farmerSignatoryImage}
               >
                 <DropzoneEmptyState />
                 <DropzoneContent />
@@ -290,10 +295,13 @@ export default function FarmerForm({
               />
             </div>
           </div>
-          <Separator className="my-5" />
-          <h1 className="font-bold text-lg flex items-center gap-2">
-            Farm Information
-          </h1>
+          <div className="space-y-1 mt-5">
+            <h1 className="font-bold text-lg flex items-center gap-2">
+              Farm Information
+            </h1>
+            <Separator />
+          </div>
+
           {fields?.map((field, index) => (
             <FarmInformationForm
               key={field.id}

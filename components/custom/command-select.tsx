@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -24,29 +24,58 @@ export default function CommandSelect({
   form: UseFormReturn;
 }) {
   const [open, setOpen] = useState(false);
-  const [label, setLabel] = useState("Select");
+  const [selectedLabel, setSelectedLabel] = useState("Select");
+
+  const currentValue = form.watch(name);
+
+  useEffect(() => {
+    if (currentValue) {
+      const selectedItem = values?.find(item => item.value === currentValue);
+      if (selectedItem) {
+        setSelectedLabel(selectedItem.label);
+      }
+    } else {
+      setSelectedLabel("Select");
+    }
+  }, [currentValue, values]);
+
+  const handleSelect = (itemValue: string) => {
+    const selectedItem = values.find(item => item.value === itemValue);
+    if (selectedItem) {
+      form.setValue(name, itemValue, { 
+        shouldValidate: true, 
+        shouldDirty: true 
+      });
+      setSelectedLabel(selectedItem.label);
+    }
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant={"outline"} className="flex justify-between ">
-          <div className={label !== "Select" ? "" : "opacity-80"}>{label}</div>
-          <ChevronDown />
+        <Button 
+          variant="outline" 
+          className="w-full justify-between"
+          type="button"
+        >
+          <span className={selectedLabel !== "Select" ? "text-foreground" : "text-muted-foreground"}>
+            {selectedLabel}
+          </span>
+          <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Type a command or search..." />
+          <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
+            <CommandGroup>
               {values?.map((item) => (
                 <CommandItem
                   key={item.value}
-                  onSelect={() => {
-                    setOpen(false);
-                    form.setValue(name, item.value);
-                    setLabel(item.label);
-                  }}
+                  value={item.value}
+                  onSelect={handleSelect}
                 >
                   <span>{item.label}</span>
                 </CommandItem>

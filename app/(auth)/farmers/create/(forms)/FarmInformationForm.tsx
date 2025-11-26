@@ -12,6 +12,7 @@ import CustomFormField from "@/components/custom/custom-form-field";
 import CommandSelect from "@/components/custom/command-select";
 import { SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import { MultiSelect } from "@/components/custom/multi-select";
 
 export default function FarmInformationForm({
   form,
@@ -26,9 +27,8 @@ export default function FarmInformationForm({
   index: number;
   length: number;
 }) {
-  const municipalityCode = form.watch(
-    `farm_information.${index}.municipality_code`
-  );
+  const { setValue, watch } = form;
+  const municipalityCode = watch(`farm_information.${index}.municipality_code`);
 
   const { data: municipalityData, isFetching: municipalityIsFetching } =
     useQuery({
@@ -67,7 +67,10 @@ export default function FarmInformationForm({
     label: item.name,
   }));
 
-  const physicalAreas = physicalAreasData?.data;
+  const physicalAreas = physicalAreasData?.data.map((item: any) => ({
+    value: item.id,
+    label: item.type,
+  }));
 
   return (
     <div className="space-y-4">
@@ -95,7 +98,7 @@ export default function FarmInformationForm({
               label="Farmer Type"
               form={form}
             />
-            <FormFieldComponent
+            {/* <FormFieldComponent
               name={`farm_information.${index}.physical_areas`}
               label="Physical Areas"
               form={form}
@@ -103,7 +106,17 @@ export default function FarmInformationForm({
               selectItems={physicalAreas?.map((item: any) => (
                 <SelectItem value={`${item.id}`} key={item.id}>{item.type}</SelectItem>
               ))}
+            /> */}
+            <div className="sm:col-span-2 space-y-2">
+              <Label>Physical Areas</Label>
+              <MultiSelect
+              name={`farm_information.${index}.physical_areas`}
+              options={physicalAreas ?? []}
+              onValueChange={(e) =>
+                setValue(`farm_information.${index}.physical_areas`, e)
+              }
             />
+            </div>
             <FormFieldComponent
               name={`farm_information.${index}.started_tenant_year`}
               label="Started Tenant Year"
