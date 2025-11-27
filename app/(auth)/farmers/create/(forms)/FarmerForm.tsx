@@ -38,11 +38,9 @@ export default function FarmerForm({
     setFarmerImage,
   } = useFarmer();
   const handleFarmerImageDrop = (files: File[]) => {
-    console.log(files);
     setFarmerImage(files);
   };
   const handleFarmerSignatoryDrop = (files: File[]) => {
-    console.log(files);
     setFarmerSignatoryImage(files);
   };
 

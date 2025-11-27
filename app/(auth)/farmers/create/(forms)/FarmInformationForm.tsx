@@ -84,21 +84,6 @@ export default function FarmInformationForm({
     }
   }, [farmerType]);
 
-  useEffect(() => {
-    if (physicalAreasValue) {
-      const transformedPhysicalAreas = physicalAreasValue.physical_areas?.map(
-        (item) => ({
-          value: String(item.id),
-          label: item.type,
-        })
-      );
-      setValue(
-        `farm_informations.${index}.physical_areas`,
-        transformedPhysicalAreas
-      );
-    }
-  }, [physicalAreasValue]);
-
   return (
     <div className="space-y-4">
       <div className="border space-y-4 shadow-md rounded-md" key={field.id}>
@@ -151,20 +136,23 @@ export default function FarmInformationForm({
               </Label>
               <Select
                 isMulti
-                value={physicalAreasValue
-                  ?.filter((item) => item?.id && item?.type) // Remove corrupted items
-                  ?.map((item) => ({
+                value={
+                  physicalAreasValue?.map((item: any) => ({
                     label: item.type,
                     value: String(item.id),
-                  }))}
+                  })) ?? []
+                }
                 name={`farm_informations.${index}.physical_areas`}
-                options={physicalAreas ?? []}
+                options={physicalAreas}
                 onChange={(e) => {
-                  setValue(`farm_informations.${index}.physical_areas`, e);
+                  const transformed = e?.map((item: any) => ({
+                    id: String(item.value),
+                    type: item.label,
+                  }));
+                   setValue(`farm_informations.${index}.physical_areas`, transformed);
                 }}
               />
             </div>
-
             <CustomFormField
               name={`farm_informations.${index}.municipality_code`}
               form={form}

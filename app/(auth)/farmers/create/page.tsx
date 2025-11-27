@@ -11,12 +11,7 @@ import { useFarmer } from "@/global/useFarmer";
 
 export default function Page() {
   const { setTitle } = useTitle();
-  const {
-    farmerImage,
-    farmerSignatoryImage,
-    setFarmerImage,
-    setFarmerSignatoryImage,
-  } = useFarmer();
+  const { farmerImage, farmerSignatoryImage } = useFarmer();
   useEffect(() => {
     setTitle({
       link: "/farmers",
@@ -26,7 +21,7 @@ export default function Page() {
   }, []);
   const form = useForm<any>({
     defaultValues: {
-      farm_information: [
+      farm_informations: [
         {
           crop_types: [{}],
           id: null,
@@ -37,7 +32,7 @@ export default function Page() {
   const handleSubmit = (data: any) => {
     const newFormData = new FormData();
     Object.keys(data).forEach((key: any) => {
-      if (key === "farm_information") {
+      if (key === "farm_informations") {
         newFormData.append(key, JSON.stringify(data[key]));
       } else {
         newFormData.append(key, data[key]);
@@ -50,10 +45,9 @@ export default function Page() {
     if (farmerSignatoryImage) {
       newFormData.append("farmer_image_signatory", farmerSignatoryImage[0]);
     }
-
+   console.log(data?.farm_informations)
     store.mutate(newFormData);
   };
-  const qclient = useQueryClient();
   const store = useMutation({
     mutationFn: async (data: any) => await ax.post("/farmers/store", data),
     onSuccess: (data) => {

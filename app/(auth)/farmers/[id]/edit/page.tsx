@@ -27,9 +27,9 @@ export default function Page() {
     queryFn: async () => await ax.get(`/farmers/${id}`),
     refetchOnWindowFocus: false,
   });
-  if (isSuccess) {
-    console.log(farmerData?.data);
-  }
+  // if (isSuccess) {
+  //   console.log(farmerData?.data);
+  // }
   if(isError) {
     console.log(error);
   }

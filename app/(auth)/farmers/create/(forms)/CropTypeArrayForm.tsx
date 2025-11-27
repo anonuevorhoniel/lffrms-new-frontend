@@ -11,7 +11,10 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
 
+const animatedComponents = makeAnimated();
 export default function CropTypeArrayForm({
   index,
   form,
@@ -65,18 +68,12 @@ function CropTypeItem({
   subIndex: number;
   form: UseFormReturn;
 }) {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [subCategorySelected, setSubCategorySelected] = useState<string[]>([]);
   const { setValue, watch } = form;
   const cropTypeId = watch(
     `farm_informations.${index}.crop_types.${subIndex}.crop_type_id`
   );
-  const {
-    data: cropTypeData,
-    isFetching: cropTypeIsFetching,
-    isSuccess,
-    isError,
-    error,
-  } = useQuery({
+  const { data: cropTypeData, isFetching: cropTypeIsFetching } = useQuery({
     queryKey: ["cropTypesFarm"],
     queryFn: async () =>
       await ax.get("/crop_types", { params: { no_pagination: true } }),
@@ -98,14 +95,11 @@ function CropTypeItem({
       label: item.name,
     })) || [];
 
-  const optionValues = watch(
-    `farm_informations.${index}.crop_types.${subIndex}.sub_categories`
-  )?.map((item: any) => String(item?.sub_category?.id));
-
   const cropTypes = cropTypeData?.data?.data;
-  // useEffect(() => {
-  //   console.log(cropTypeId);
-  // }, [options]);
+  const subCategories = watch(
+    `farm_informations.${index}.crop_types.${subIndex}.subCategories`
+  );
+
   return (
     <div className="grid sm:grid-cols-3 gap-3">
       <FormFieldComponent
@@ -138,16 +132,29 @@ function CropTypeItem({
               "pointer-events-none"
             }`}
           >
-            <MultiSelect
-              defaultValue={options ? optionValues : []}
+            <Select
+              isMulti
+              closeMenuOnSelect={false}
+              components={animatedComponents}
+              value={
+                subCategories?.map((item) => ({
+                  label: item.name,
+                  value: String(item.id),
+                })) ?? []
+              }
               name={`farm_informations.${index}.crop_types.${subIndex}.sub_categories`}
               options={options}
-              onValueChange={(e) =>
+              onChange={(e) => {
+                const transformback = e?.map((item) => ({
+                  id: String(item.value),
+                  name: item.label,
+                }));
                 setValue(
-                  `farm_informations.${index}.crop_types.${subIndex}.sub_categories`,
-                  e
-                )
-              }
+                  `farm_informations.${index}.crop_types.${subIndex}.subCategories`,
+                  transformback
+                );
+                console.log(transformback);
+              }}
             />
           </div>
         </div>
